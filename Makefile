@@ -240,7 +240,7 @@ bower_components : bower.json
 # For example: test.js is built from the files listed in test.js.concat.
 % : %.concat
 	@echo "Combining files listed in $< to $@";
-	@rm $@;
+	@rm -f $@;
 	@cat $< | xargs cat >> $@;
 
 # Touch .concat files to trigger rebuilding based on their prerequisites.

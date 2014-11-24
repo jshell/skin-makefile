@@ -178,7 +178,7 @@ production : all verify
 
 define VERIFY_VERSION_template
 .verify_version_$(1) : Makefile
-	@which -s $$($(1)) || (echo "command '$$($(1))' not found."; exit 1)
+	@which $$($(1)) || (echo "command '$$($(1))' not found."; exit 1)
 	@echo "Verifying '$$($(1))' version specification '$$(version_spec_$(1))'"
 	@$(VERIFY_VERSION_SPEC) --spec="$$(version_spec_$(1))" `$$(fetch_version_$(1))`
 	@touch $$@

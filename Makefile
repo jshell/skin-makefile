@@ -15,7 +15,7 @@ commands_development := $(commands) CSSLINT
 
 # Regular Expression to find a semantic version number for egrep command.
 # Matches 1.4.2, 0.9, 3
-regex_semver := (\d+\.)?(\d+\.)?(\d+)
+regex_semver := ([[:digit:]]+\.)?([[:digit:]]+\.)?([[:digit:]]+)
 
 CURL := curl
 version_spec_CURL := >=7

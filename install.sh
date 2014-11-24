@@ -7,10 +7,8 @@
 # md5sum
 # optipng
 # npm
-apt-get install curl md5sum optipng npm;
+apt-get install curl md5sum optipng npm jq;
 
-
-# TODO: How to install 'jq' from: http://stedolan.github.io/jq/ ?
 
 # pip install ...
 # glue

@@ -99,8 +99,8 @@ STATIC_DIR := static
 # root component.json. Filter out 'null' values from jq and make it blank if no
 # component.json.
 
-local_component_paths := $(if $(wildcard component.json), $(filter-out null, $(shell cat component.json | jq -r -a '.paths | @sh')))
-local_component_files := $(if $(wildcard component.json), $(filter-out null, $(shell cat component.json | jq -r -a '.styles, .scripts, .json, .images, .fonts, .files | @sh')))
+local_component_paths := $(if $(wildcard component.json), $(filter-out null, $(shell cat component.json | $(JQ) -r -a '.paths | @sh')))
+local_component_files := $(if $(wildcard component.json), $(filter-out null, $(shell cat component.json | $(JQ) -r -a '.styles, .scripts, .json, .images, .fonts, .files | @sh')))
 
 # Find all files recursively in the cwd with .curl extension
 curl_configs := $(shell find $(STATIC_DIR) -name '*.curl')

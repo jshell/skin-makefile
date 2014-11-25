@@ -64,7 +64,7 @@ STRIPMQ := stripmq
 # md5sum via `port install md5sha1sum` on mac osx
 MD5SUM := md5sum
 version_spec_MD5SUM := >=0.9
-fetch_version_MD5SUM := $(MD5SUM) -V | egrep -o -m1 "$(regex_semver)"
+fetch_version_MD5SUM := $(MD5SUM) --version | egrep -o -m1 "$(regex_semver)"
 
 # For parsing and editing json files
 # http://stedolan.github.io/jq/

@@ -27,8 +27,9 @@ version_spec_GLUE := >=0.9,<0.10
 fetch_version_GLUE := $(GLUE) -v 2>&1 >/dev/null | egrep -o -m1 "$(regex_semver)"
 
 OPTIPNG := optipng
-version_spec_OPTIPNG := >=0.7,<0.8
+version_spec_OPTIPNG := >=0.6,<0.8
 fetch_version_OPTIPNG := $(OPTIPNG) -v | egrep -o -m1 "$(regex_semver)"
+OPTIPNG_OPTIONS :=
 
 UGLIFYJS := uglifyjs
 version_spec_UGLIFYJS := >=2.4,<3.0
@@ -68,9 +69,10 @@ fetch_version_MD5SUM := $(MD5SUM) --version | egrep -o -m1 "$(regex_semver)"
 
 # For parsing and editing json files
 # http://stedolan.github.io/jq/
+# Version 1.3 sends to stderr and 1.4 sends to stdout
 JQ := jq
-version_spec_JQ := >=1.4
-fetch_version_JQ := $(JQ) -V | egrep -o -m1 "$(regex_semver)"
+version_spec_JQ := >=1.3
+fetch_version_JQ := $(JQ) -V 2>&1 | egrep -o -m1 "$(regex_semver)"
 
 
 # https://github.com/stubbornella/csslint
@@ -276,7 +278,7 @@ $(foreach obj,$(ugly_configs),$(eval $(call UGLY_DEPS_template,$(obj))))
 # the target for this.
 .glue : $(images_in_sprites) $(wildcard $(STATIC_DIR)/css/img/sprites/sprite.conf) $(wildcard $(STATIC_DIR)/css/img/sprites/*/sprite.conf)
 	$(GLUE) --project --namespace='' --less $(STATIC_DIR)/css/ --img=$(STATIC_DIR)/css/img/sprites --cachebuster $(STATIC_DIR)/css/img/sprites/
-	$(OPTIPNG) -clobber $(glue_sprites);
+	$(OPTIPNG) $(OPTIPNG_OPTIONS) $(glue_sprites);
 	@touch .glue
 
 # Less

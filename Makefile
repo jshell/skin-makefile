@@ -36,7 +36,7 @@ version_spec_UGLIFYJS := >=2.4,<3.0
 fetch_version_UGLIFYJS := $(UGLIFYJS) -V | egrep -o -m1 "$(regex_semver)"
 
 CLEANCSS := cleancss
-version_spec_CLEANCSS := >=2.0,<3.0
+version_spec_CLEANCSS := >=2.0,<4.0
 fetch_version_CLEANCSS := $(CLEANCSS) -v | egrep -o -m1 "$(regex_semver)"
 
 COMPONENT := component

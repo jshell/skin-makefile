@@ -1,4 +1,4 @@
-# Skin Makefile 0.0.2
+# Skin Makefile 0.0.3-alpha
 #
 # This is a generic Makefile for fetching front end resources and compiling
 # them.  It uses some custom extensions `.curl`, `.concat`, `.ugly`,
@@ -276,7 +276,7 @@ $(foreach obj,$(ugly_configs),$(eval $(call UGLY_DEPS_template,$(obj))))
 # Using 'project' arg in order to create the sprites that need creating.
 # If there are no changes then glue doesn't rebuild the sprites. Using .glue as
 # the target for this.
-.glue : $(images_in_sprites) $(wildcard $(STATIC_DIR)/css/img/sprites/sprite.conf) $(wildcard $(STATIC_DIR)/css/img/sprites/*/sprite.conf)
+.glue : $(images_in_sprites) $(wildcard $(STATIC_DIR)/css/img/sprites/sprite.conf) $(wildcard $(STATIC_DIR)/css/img/sprites/*.jinja2) $(wildcard $(STATIC_DIR)/css/img/sprites/*/sprite.conf) $(wildcard $(STATIC_DIR)/css/img/sprites/*/*.jinja2)
 	$(GLUE) --project --namespace='' --less $(STATIC_DIR)/css/ --img=$(STATIC_DIR)/css/img/sprites --cachebuster $(STATIC_DIR)/css/img/sprites/
 	$(OPTIPNG) $(OPTIPNG_OPTIONS) $(glue_sprites);
 	@touch .glue

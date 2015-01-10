@@ -32,3 +32,6 @@ npm install -g bower;
 npm install -g less;
 npm install -g autoprefixer;
 npm install -g stripmq;
+
+# install custom fork of suitcss
+npm install -g git://github.com/jkenlooper/preprocessor#0.5.0-depends;

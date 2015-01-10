@@ -1,4 +1,4 @@
-# Skin Makefile 0.0.3-alpha
+# Skin Makefile 0.0.3-alpha.1
 #
 # This is a generic Makefile for fetching front end resources and compiling
 # them.  It uses some custom extensions `.curl`, `.concat`, `.ugly`,
@@ -9,7 +9,7 @@
 
 
 # Requires the following commands with compliant versions specified:
-commands := CURL GLUE LESSC OPTIPNG UGLIFYJS CLEANCSS COMPONENT BOWER AUTOPREFIXER MD5SUM JQ
+commands := CURL GLUE LESSC OPTIPNG UGLIFYJS CLEANCSS COMPONENT BOWER AUTOPREFIXER SUITCSS MD5SUM JQ
 # List commands used only for development and not needed for production
 commands_development := $(commands) CSSLINT
 
@@ -61,6 +61,10 @@ AUTOPREFIXER_BROWSERS := "> 1%, last 2 versions, Firefox ESR, Opera 12.1"
 STRIPMQ := stripmq
 #version_spec_STRIPMQ := >=0.0.5
 #fetch_version_STRIPMQ := $(STRIPMQ) -V | egrep -o -m1 "$(regex_semver)"
+
+SUITCSS := suitcss
+version_spec_SUITCSS := ==0.5.0-depends
+fetch_version_SUITCSS := $(SUITCSS) -V | egrep -o -m1 "$(regex_semver)"
 
 # md5sum via `port install md5sha1sum` on mac osx
 MD5SUM := md5sum
@@ -128,6 +132,10 @@ stripmq_files := $(stripmq_configs:%.stripmq=%)
 # Clean-css files
 cleancss_configs := $(shell find $(STATIC_DIR) $(local_component_paths) -name '*.cleancss')
 cleancss_files := $(cleancss_configs:%.cleancss=%)
+
+# Preprocess css files
+preprocesscss_configs := $(shell find $(STATIC_DIR) $(local_component_paths) -name '*.preprocess.css')
+preprocesscss_files := $(preprocesscss_configs:%.preprocess.css=%)
  
 min_dev_less := $(shell find $(STATIC_DIR) -name '*.min.dev.less')
 dev_css := $(patsubst %.min.dev.less, %.dev.css, $(min_dev_less))
@@ -149,14 +157,14 @@ bower_components := $(if $(wildcard bower.json),bower_components,)
 # Only use glue command if there are sprites to glue
 glue := $(if $(glue_sprites), .glue, )
 
-objects := $(verify_commands) $(if $(wildcard component.json), $(STATIC_DIR)/build components) $(curl_files) $(bower_components) $(concat_files) $(ugly_files) $(dev_css) $(min_css) $(lessed_css) $(autoprefix_files) $(stripmq_files) $(cleancss_files) $(if $(wildcard component.json), $(STATIC_DIR)/build components) $(glue) $(glue_sprites)
+objects := $(verify_commands) $(if $(wildcard component.json), $(STATIC_DIR)/build components) $(curl_files) $(bower_components) $(concat_files) $(ugly_files) $(dev_css) $(min_css) $(lessed_css) $(autoprefix_files) $(stripmq_files) $(cleancss_files) $(preprocesscss_files) $(if $(wildcard component.json), $(STATIC_DIR)/build components) $(glue) $(glue_sprites)
 objects_development := $(objects) $(verify_commands_development)
 
 # Allow use of automatic variables in prerequisites
 .SECONDEXPANSION:
 
 # all is the default as long as it's first
-all :  $(objects) $(concat_configs) $(autoprefix_configs) $(stripmq_configs) $(cleancss_configs)
+all :  $(objects) $(concat_configs) $(autoprefix_configs) $(stripmq_configs) $(cleancss_configs) $(preprocesscss_configs)
 .PHONY : all manifest clean development production
 
 -include *.skin.mk
@@ -211,7 +219,7 @@ components : component.json
 # Set prerequisites to be components and local components. Sets all files
 # within each local component path as a prerequisite, but filters out any that
 # are prequisites elsewhere.
-other_prequisites := $(autoprefix_configs) $(cleancss_configs) $(css_less)
+other_prequisites := $(autoprefix_configs) $(cleancss_configs) $(preprocesscss_configs) $(css_less)
 
 # TODO: Only include those within the local_components directories
 local_components_built_with_make := $(lessed_css)
@@ -353,6 +361,17 @@ $(autoprefix_configs) : %: $$(shell cat $$@)
 
 $(cleancss_configs) : %: $$(shell cat $$@)
 	@touch $@;
+
+
+# Preprocess css files using suitcss
+
+% : %.preprocess.css
+	$(SUITCSS) $< $@;
+
+# Use '--depends' option with suitcss command to output all the imported css files.
+$(preprocesscss_configs) : %: $$(shell $(SUITCSS) --depends $$@)
+	@touch $@;
+
 
 # TODO: Move these git specific stuff to extras/git.skin.mk
 # TODO: Add a .gitattributes file for setting minified files to be binary, and possibly setting their textconf for viewing diffs.

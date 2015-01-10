@@ -160,6 +160,9 @@ glue := $(if $(glue_sprites), .glue, )
 objects := $(verify_commands) $(if $(wildcard component.json), $(STATIC_DIR)/build components) $(curl_files) $(bower_components) $(concat_files) $(ugly_files) $(dev_css) $(min_css) $(lessed_css) $(autoprefix_files) $(stripmq_files) $(cleancss_files) $(preprocesscss_files) $(if $(wildcard component.json), $(STATIC_DIR)/build components) $(glue) $(glue_sprites)
 objects_development := $(objects) $(verify_commands_development)
 
+# clear out any suffixes
+.SUFFIXES:
+
 # Allow use of automatic variables in prerequisites
 .SECONDEXPANSION:
 

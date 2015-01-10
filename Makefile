@@ -389,13 +389,14 @@ $(preprocesscss_configs) : %: $$(shell $(SUITCSS) --depends $$@ 2> /dev/null || 
 
 # Automate marking all files that have been created to be ignored by git.
 # TODO: include .concat files
-tracked_files_that_will_be_cleaned = $(filter $(shell git ls-files), $(sort $(objects) $(objects_development)))
+built_cache_index_files = $(filter $(shell git ls-files), $(sort $(objects) $(objects_development)))
 # TODO: add 'ignore' and 'no_ignore' to .PHONY target?
 ignore : 
-	git update-index --assume-unchanged  $(tracked_files_that_will_be_cleaned)
+	git update-index --assume-unchanged  $(built_cache_index_files)
 
 no_ignore : 
-	git update-index --no-assume-unchanged $(tracked_files_that_will_be_cleaned)
+	git update-index --no-assume-unchanged $(built_cache_index_files)
 
+# Remove all built files except those that are tracked by git (built_cache_index_files).
 clean :
-	rm -rf $(objects) $(objects_development)
+	rm -rf $(sort $(filter-out $(built_cache_index_files),$(objects) $(objects_development)))

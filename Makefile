@@ -14,8 +14,8 @@ commands := CURL GLUE LESSC OPTIPNG UGLIFYJS CLEANCSS COMPONENT BOWER AUTOPREFIX
 commands_development := $(commands) CSSLINT
 
 # Regular Expression to find a semantic version number for egrep command.
-# Matches 1.4.2, 0.9, 3
-regex_semver := ([[:digit:]]+\.)?([[:digit:]]+\.)?([[:digit:]]+)
+# Matches 1.4.2, 0.9, 3, 0.4.2-alpha, 0.4.2-alpha.2
+regex_semver := ([[:digit:]]+\.)?([[:digit:]]+\.)?([[:digit:]]+)(-([[:alnum:]]+)?(\.[[:alnum:]]+)?)?
 
 CURL := curl
 version_spec_CURL := >=7

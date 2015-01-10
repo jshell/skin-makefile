@@ -372,7 +372,15 @@ $(cleancss_configs) : %: $$(shell cat $$@)
 	$(SUITCSS) $< $@;
 
 # Use '--depends' option with suitcss command to output all the imported css files.
-$(preprocesscss_configs) : %: $$(shell $(SUITCSS) --depends $$@)
+#
+# Ignore any errors when imported css files are missing by passing stderr to
+# /dev/null. If there is an error then show a warning only and continue. (It's
+# okay if no dependencies are listed, cause it's likely that the `make clean`
+# command removed them and they'll all be built in this run.)
+.ignore_missing_imported_css :
+	$(warning "Some css files were not found in the initial '$(SUITCSS) --depends' check.  If the next '$(SUITCSS)' command did not cause an error, then you can ignore this warning.")
+
+$(preprocesscss_configs) : %: $$(shell $(SUITCSS) --depends $$@ 2> /dev/null || echo '.ignore_missing_imported_css')
 	@touch $@;
 
 

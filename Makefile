@@ -309,10 +309,18 @@ endef
 
 $(foreach obj,$(min_dev_less),$(eval $(call LESS_DEPS_template,$(obj))))
 
+# Ignore any errors when imported less files are missing by passing stderr to
+# /dev/null. If there is an error then show a warning only and continue. (It's
+# okay if no dependencies are listed, cause it's likely that the `make clean`
+# command removed them and they'll all be built in this run.)
+.ignore_missing_imported_less :
+	$(warning "Some less files were not found in the initial '$(LESSC) --depends' check.  If the next '$(LESSC)' command did not cause an error, then you can ignore this warning.")
+
+
 # Builds a .css version of any .css.less file.
 # Includes all glue targets as prerequisites.
 define CSS_LESS_template
-$$(patsubst %.css.less, %.css, $(1)) : $(1) $$(filter-out "$(1)", $$(shell $$(LESSC) --depends $(1) ./ | sed 's/\.\/://g')) $$(glue)
+$$(patsubst %.css.less, %.css, $(1)) : $(1) $$(filter-out "$(1)" ./:, $$(shell $$(LESSC) --depends $(1) ./ 2> /dev/null || echo '.ignore_missing_imported_less')) $$(glue)
 	$$(LESSC) $$< > $$@;
 endef
 

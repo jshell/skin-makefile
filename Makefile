@@ -1,4 +1,4 @@
-# Skin Makefile 0.0.3-alpha.1
+# Skin Makefile 0.0.3-alpha.2
 #
 # This is a generic Makefile for fetching front end resources and compiling
 # them.  It uses some custom extensions `.curl`, `.concat`, `.ugly`,
@@ -320,7 +320,7 @@ $(foreach obj,$(min_dev_less),$(eval $(call LESS_DEPS_template,$(obj))))
 # Builds a .css version of any .css.less file.
 # Includes all glue targets as prerequisites.
 define CSS_LESS_template
-$$(patsubst %.css.less, %.css, $(1)) : $(1) $$(filter-out "$(1)" ./:, $$(shell $$(LESSC) --depends $(1) ./ 2> /dev/null || echo '.ignore_missing_imported_less')) $$(glue)
+$$(patsubst %.css.less, %.css, $(1)) : $(1) $$(filter-out "$(1)" /dev/null:, $$(shell $$(LESSC) --depends $(1) /dev/null 2> /dev/null || echo '.ignore_missing_imported_less')) $$(glue)
 	$$(LESSC) $$< > $$@;
 endef
 

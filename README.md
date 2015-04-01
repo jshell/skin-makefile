@@ -1,17 +1,17 @@
 # Skin Makefile
 
-This is a generic Makefile for fetching front end resources and compiling them.
-It uses some custom extensions `.curl`, `.concat`, `.ugly`, `.min.dev.less`,
-`.css.less` to avoid the need to edit/customize the Makefile for individual
-projects.  Resources are found using curl, component, and bower.  The Makefile
-will do an `include` for any files with the `.skin.mk` extension.
+This is a generic Makefile for fetching front end resources and compiling
+them.  It uses some custom extensions `.curl`, `.concat`, `.ugly`,
+`.min.dev.less`, `.css.less`, and others to avoid the need to edit/customize
+the Makefile for individual projects.  It depends on few commands which can
+be seen in the install.sh script.  When starting the first time it will check
+the versions of commands it depends on to see if they are compliant.  The
+Makefile will do an `include` for any files with the `.skin.mk` extension.
 
 ## Installing
 
-The Makefile requires the following commands to be available:
-curl glue lessc optipng uglifyjs cleancss component bower autoprefixer md5sum jq verify_version_spec stripmq
-
-*See the install.sh*
+The Makefile requires a custom set of commands to be available. See the
+`install.sh` for specifics. 
 
 ## Using
 

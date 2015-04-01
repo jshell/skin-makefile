@@ -1,14 +1,15 @@
-# Skin Makefile 0.0.3-alpha.2
+# Skin Makefile 0.0.3-alpha.3
 #
 # This is a generic Makefile for fetching front end resources and compiling
 # them.  It uses some custom extensions `.curl`, `.concat`, `.ugly`,
-# `.min.dev.less`, `.css.less` to avoid the need to edit/customize the Makefile
-# for individual projects.  Resources are found using curl, component, and
-# bower.  The Makefile will do an `include` for any files with the `.skin.mk`
-# extension.
+# `.min.dev.less`, `.css.less`, and others to avoid the need to edit/customize
+# the Makefile for individual projects.  It depends on few commands which can
+# be seen in the install.sh script.  When starting the first time it will check
+# the versions of commands it depends on to see if they are compliant.  The
+# Makefile will do an `include` for any files with the `.skin.mk` extension.
 
-
-# Requires the following commands with compliant versions specified:
+# The version check is done on the following commands just before using it.  It
+# stores an empty file `.verify_version_*` for each to avoid checking again.
 commands := CURL GLUE LESSC OPTIPNG UGLIFYJS CLEANCSS COMPONENT BOWER AUTOPREFIXER SUITCSS MD5SUM JQ
 # List commands used only for development and not needed for production
 commands_development := $(commands) CSSLINT
@@ -157,7 +158,7 @@ bower_components := $(if $(wildcard bower.json),bower_components,)
 # Only use glue command if there are sprites to glue
 glue := $(if $(glue_sprites), .glue, )
 
-objects := $(verify_commands) $(if $(wildcard component.json), $(STATIC_DIR)/build components) $(curl_files) $(bower_components) $(concat_files) $(ugly_files) $(dev_css) $(min_css) $(lessed_css) $(autoprefix_files) $(stripmq_files) $(cleancss_files) $(preprocesscss_files) $(if $(wildcard component.json), $(STATIC_DIR)/build components) $(glue) $(glue_sprites)
+objects := $(if $(wildcard component.json), $(STATIC_DIR)/build components) $(curl_files) $(bower_components) $(concat_files) $(ugly_files) $(dev_css) $(min_css) $(lessed_css) $(autoprefix_files) $(stripmq_files) $(cleancss_files) $(preprocesscss_files) $(if $(wildcard component.json), $(STATIC_DIR)/build components) $(glue) $(glue_sprites)
 objects_development := $(objects) $(verify_commands_development)
 
 # clear out any suffixes
@@ -173,7 +174,7 @@ all :  $(objects) $(concat_configs) $(autoprefix_configs) $(stripmq_configs) $(c
 -include *.skin.mk
 
 # Filter out the directories like bower_components, build, and components 
-compiled_objects := $(filter-out $(STATIC_DIR)/build components $(bower_components) $(glue) $(verify_commands), $(objects))
+compiled_objects := $(filter-out $(STATIC_DIR)/build components $(bower_components) $(glue), $(objects))
 
 # Use 'development' target when just developing on local machine. Includes
 # linting of code, updating styleguides, and possibly updating the manifest.
@@ -203,10 +204,10 @@ $(foreach obj,$(sort $(commands) $(commands_development)),$(eval $(call VERIFY_V
 # 'md5sum' is on Debian and verifies
 # 'md5sum' is also available from macports. https://trac.macports.org/browser/trunk/dports/sysutils/md5sha1sum/Portfile
 # alias the lowercase manifest
-manifest MANIFEST : $(compiled_objects)
+manifest MANIFEST : $(compiled_objects) .verify_version_MD5SUM
 	$(MD5SUM) $(compiled_objects) > MANIFEST
 
-verify : all
+verify : all .verify_version_MD5SUM
 	$(MD5SUM) -c MANIFEST
 
 # Component is setup here to do `component install` if component.json changes.
@@ -214,7 +215,7 @@ verify : all
 # Component creates should be published. The files within it should be separate
 # from the rest of the Makefile. (Don't try using something that component
 # creates in a concat and vice versa.)
-components : component.json
+components : component.json .verify_version_COMPONENT
 	$(COMPONENT) install;
 	touch $@;
 
@@ -227,13 +228,14 @@ other_prequisites := $(autoprefix_configs) $(cleancss_configs) $(preprocesscss_c
 # TODO: Only include those within the local_components directories
 local_components_built_with_make := $(lessed_css)
 
-static/build : components $(if $(local_component_paths), $(filter-out $(other_prequisites), $(shell find $(local_component_paths) -type f))) $(local_component_files) $(local_components_built_with_make)
+# (components depends on the jq command to parse the components.json file for prequisites. Hence the .verify_version_JQ here.)
+static/build : components $(if $(local_component_paths), $(filter-out $(other_prequisites), $(shell find $(local_component_paths) -type f))) $(local_component_files) $(local_components_built_with_make) .verify_version_COMPONENT .verify_version_JQ
 	$(COMPONENT) build --out $(STATIC_DIR)/build;
 	touch $@;
 
 
 # Bower components are only updated if the bower.json has changed.
-bower_components : bower.json
+bower_components : bower.json .verify_version_BOWER
 	$(BOWER) install
 	@touch $@;
 
@@ -241,7 +243,7 @@ bower_components : bower.json
 # This needs to match the variables: curl_files and curl_configs
 # Check if the resource has moved permantly with 301 error code and show
 # a warning.
-% : %.curl
+% : %.curl .verify_version_CURL
 	@(if test "301" = `$(CURL) --silent --head --write-out "%{http_code}" --config $< --output /dev/null`; then \
 		$(CURL) --silent --head --location --write-out "WARNING: Error 301. Update url in $< to url_effective: %{url_effective}\n" --config $< --output /dev/null; \
 		fi);
@@ -265,7 +267,7 @@ $(concat_configs) : %: $$(shell cat $$@)
 # Each ugly file contains the file paths that will be uglified. The name of the
 # uglified file is the ugly file without the .ugly extension.  How pretty.
 # Note: options can be passed in by adding them to the end of the ugly file.
-% : %.ugly
+% : %.ugly .verify_version_UGLIFYJS
 	@echo "Uglifying $@ from $(shell cat $<)"
 	@$(UGLIFYJS) `cat $<` --output $@
 	 
@@ -287,7 +289,7 @@ $(foreach obj,$(ugly_configs),$(eval $(call UGLY_DEPS_template,$(obj))))
 # Using 'project' arg in order to create the sprites that need creating.
 # If there are no changes then glue doesn't rebuild the sprites. Using .glue as
 # the target for this.
-.glue : $(images_in_sprites) $(wildcard $(STATIC_DIR)/css/img/sprites/sprite.conf) $(wildcard $(STATIC_DIR)/css/img/sprites/*.jinja2) $(wildcard $(STATIC_DIR)/css/img/sprites/*/sprite.conf) $(wildcard $(STATIC_DIR)/css/img/sprites/*/*.jinja2)
+.glue : $(images_in_sprites) $(wildcard $(STATIC_DIR)/css/img/sprites/sprite.conf) $(wildcard $(STATIC_DIR)/css/img/sprites/*.jinja2) $(wildcard $(STATIC_DIR)/css/img/sprites/*/sprite.conf) $(wildcard $(STATIC_DIR)/css/img/sprites/*/*.jinja2) .verify_version_GLUE .verify_version_OPTIPNG
 	$(GLUE) --project --namespace='' --less $(STATIC_DIR)/css/ --img=$(STATIC_DIR)/css/img/sprites --cachebuster $(STATIC_DIR)/css/img/sprites/
 	$(OPTIPNG) $(OPTIPNG_OPTIONS) $(glue_sprites);
 	@touch .glue
@@ -299,11 +301,11 @@ $(foreach obj,$(ugly_configs),$(eval $(call UGLY_DEPS_template,$(obj))))
 # Includes all glue targets as prerequisites.
 
 define LESS_DEPS_template
-$$(patsubst %.min.dev.less, %.dev.css, $(1)) : $(1) $$(filter-out "$(1)", $$(shell $$(LESSC) --depends $(1) $$(STATIC_DIR)/ | sed 's/$$(STATIC_DIR)\/://g')) $$(glue)
+$$(patsubst %.min.dev.less, %.dev.css, $(1)) : $(1) $$(filter-out "$(1)", $$(shell $$(LESSC) --depends $(1) $$(STATIC_DIR)/ | sed 's/$$(STATIC_DIR)\/://g')) $$(glue) .verify_version_LESSC .verify_version_AUTOPREFIXER
 	$$(LESSC) $$< > $$@;
 	$$(AUTOPREFIXER) -b $$(AUTOPREFIXER_BROWSERS) $$@;
 
-$$(patsubst %.min.dev.less, %.min.css, $(1)) : $$(patsubst %.min.dev.less, %.dev.css, $(1))
+$$(patsubst %.min.dev.less, %.min.css, $(1)) : $$(patsubst %.min.dev.less, %.dev.css, $(1)) .verify_version_CLEANCSS
 	$$(CLEANCSS) -o $$@ $$<
 endef
 
@@ -320,7 +322,7 @@ $(foreach obj,$(min_dev_less),$(eval $(call LESS_DEPS_template,$(obj))))
 # Builds a .css version of any .css.less file.
 # Includes all glue targets as prerequisites.
 define CSS_LESS_template
-$$(patsubst %.css.less, %.css, $(1)) : $(1) $$(filter-out "$(1)" /dev/null:, $$(shell $$(LESSC) --depends $(1) /dev/null 2> /dev/null || echo '.ignore_missing_imported_less')) $$(glue)
+$$(patsubst %.css.less, %.css, $(1)) : $(1) $$(filter-out "$(1)" /dev/null:, $$(shell $$(LESSC) --depends $(1) /dev/null 2> /dev/null || echo '.ignore_missing_imported_less')) $$(glue) .verify_version_LESSC
 	$$(LESSC) $$< > $$@;
 endef
 
@@ -344,7 +346,7 @@ endef
 
 $(foreach obj,$(stripmq_configs),$(eval $(call STRIPMQ_template,$(obj))))
 
-% : %.autoprefix
+% : %.autoprefix .verify_version_AUTOPREFIXER
 	$(AUTOPREFIXER) -b $(AUTOPREFIXER_BROWSERS) --output $@ `cat $^`;
 
 $(autoprefix_configs) : %: $$(shell cat $$@)
@@ -367,7 +369,7 @@ $(autoprefix_configs) : %: $$(shell cat $$@)
 # Opera: 22, 21, 12.1
 # IE Mobile: 10
 
-% : %.cleancss
+% : %.cleancss .verify_version_CLEANCSS
 	$(CLEANCSS) --output $@ `cat $^`;
 
 $(cleancss_configs) : %: $$(shell cat $$@)
@@ -376,7 +378,7 @@ $(cleancss_configs) : %: $$(shell cat $$@)
 
 # Preprocess css files using suitcss
 
-% : %.preprocess.css
+% : %.preprocess.css .verify_version_SUITCSS
 	$(SUITCSS) $< $@;
 
 # Use '--depends' option with suitcss command to output all the imported css files.
@@ -407,4 +409,4 @@ no_ignore :
 
 # Remove all built files except those that are tracked by git (built_cache_index_files).
 clean :
-	rm -rf $(sort $(filter-out $(built_cache_index_files),$(objects) $(objects_development)))
+	rm -rf $(sort $(filter-out $(built_cache_index_files),$(objects) $(objects_development) $(verify_commands) ))

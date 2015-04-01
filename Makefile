@@ -22,7 +22,7 @@ version_spec_CURL := >=7
 fetch_version_CURL := $(CURL) -V | egrep -o -m1 "$(regex_semver)"
 
 GLUE := glue
-version_spec_GLUE := >=0.9,<0.10
+version_spec_GLUE := >=0.9,<0.12
 # Glue sends the version to stderr. Redirect to stdout and pipe it to egrep.
 fetch_version_GLUE := $(GLUE) -v 2>&1 >/dev/null | egrep -o -m1 "$(regex_semver)"
 

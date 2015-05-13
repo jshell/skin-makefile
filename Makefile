@@ -372,8 +372,19 @@ $(autoprefix_configs) : %: $$(shell cat $$@)
 % : %.cleancss .verify_version_CLEANCSS
 	$(CLEANCSS) --output $@ `cat $^`;
 
-$(cleancss_configs) : %: $$(shell cat $$@)
-	@touch $@;
+# Touch .cleancss files to trigger rebuilding based on their prerequisites.
+# Filter out any options by just looking for the .css extension
+#	Define a template to create prerequisites for each .cleancss file. The
+#	prerequisites for an .cleancss file are listed inside it.
+define CLEANCSS_template
+$(1) : $$(filter %.css, $$(shell cat $(1)))
+	@touch $$@;
+endef
+
+$(foreach obj,$(cleancss_configs),$(eval $(call CLEANCSS_template,$(obj))))
+
+#$(cleancss_configs) : %: $$(shell cat $$@)
+#	@touch $@;
 
 
 # Preprocess css files using suitcss

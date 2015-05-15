@@ -169,7 +169,7 @@ objects_development := $(objects) $(verify_commands_development)
 
 # all is the default as long as it's first
 all :  $(objects) $(concat_configs) $(autoprefix_configs) $(stripmq_configs) $(cleancss_configs) $(preprocesscss_configs)
-.PHONY : all manifest clean development production
+.PHONY : all manifest clean development production skip.curl
 
 -include *.skin.mk
 
@@ -249,11 +249,13 @@ bower_components : bower.json .verify_version_BOWER
 		$(CURL) --silent --head --location --write-out "WARNING: Error 301. Update url in $< to url_effective: %{url_effective}\n" --config $< --output /dev/null; \
 		fi); \
 	echo "Get $@"; \
-	$(CURL) --silent --show-error --fail --location --config $< --output $@; \
+	$(CURL) --silent --show-error --fail --location --config $< --output $@ || (echo "Failed. If file exists try: 'make skip.curl' or use touch."; exit 1); \
 	fi);
 
-# TODO: make a skip.curl target to skip all downloaded files.
-#skip.curl :
+# Skip all downloaded files that already exist.
+skip.curl :
+	@echo Skipping already downloaded files. 
+	touch -c $(curl_files);
 
 # Concat task
 # The .concat files list the files that will be combined into the target file.

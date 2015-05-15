@@ -1,4 +1,4 @@
-# Skin Makefile 0.0.3-alpha.3
+# Skin Makefile 0.0.4
 #
 # This is a generic Makefile for fetching front end resources and compiling
 # them.  It uses some custom extensions `.curl`, `.concat`, `.ugly`,

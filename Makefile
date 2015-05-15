@@ -354,7 +354,7 @@ endef
 $(foreach obj,$(stripmq_configs),$(eval $(call STRIPMQ_template,$(obj))))
 
 % : %.autoprefix .verify_version_AUTOPREFIXER
-	$(AUTOPREFIXER) -b $(AUTOPREFIXER_BROWSERS) --output $@ `cat $^`;
+	$(AUTOPREFIXER) -b $(AUTOPREFIXER_BROWSERS) --output $@ `cat $<`;
 
 $(autoprefix_configs) : %: $$(shell cat $$@)
 	@touch $@;
@@ -377,7 +377,7 @@ $(autoprefix_configs) : %: $$(shell cat $$@)
 # IE Mobile: 10
 
 % : %.cleancss .verify_version_CLEANCSS
-	$(CLEANCSS) --output $@ `cat $^`;
+	$(CLEANCSS) --output $@ `cat $<`;
 
 # Touch .cleancss files to trigger rebuilding based on their prerequisites.
 # Filter out any options by just looking for the .css extension

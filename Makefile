@@ -390,9 +390,6 @@ endef
 
 $(foreach obj,$(cleancss_configs),$(eval $(call CLEANCSS_template,$(obj))))
 
-#$(cleancss_configs) : %: $$(shell cat $$@)
-#	@touch $@;
-
 
 # Preprocess css files using suitcss
 

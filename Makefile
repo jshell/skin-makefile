@@ -244,11 +244,16 @@ bower_components : bower.json .verify_version_BOWER
 # Check if the resource has moved permantly with 301 error code and show
 # a warning.
 % : %.curl .verify_version_CURL
-	@(if test "301" = `$(CURL) --silent --head --write-out "%{http_code}" --config $< --output /dev/null`; then \
+	@(if test ! $@ -nt $<; then \
+	(if test "301" = `$(CURL) --silent --head --write-out "%{http_code}" --config $< --output /dev/null`; then \
 		$(CURL) --silent --head --location --write-out "WARNING: Error 301. Update url in $< to url_effective: %{url_effective}\n" --config $< --output /dev/null; \
-		fi);
-	@echo "Get $@"
-	@$(CURL) --silent --show-error --fail --location --config $< --output $@
+		fi); \
+	echo "Get $@"; \
+	$(CURL) --silent --show-error --fail --location --config $< --output $@; \
+	fi);
+
+# TODO: make a skip.curl target to skip all downloaded files.
+#skip.curl :
 
 # Concat task
 # The .concat files list the files that will be combined into the target file.

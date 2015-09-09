@@ -97,7 +97,7 @@ VERIFY_VERSION_SPEC := verify_version_spec
 verify_commands := $(patsubst %, .verify_version_%, $(commands))
 verify_commands_development := $(patsubst %, .verify_version_%, $(commands_development))
 
-# TODO: Use .DELETE_ON_ERROR 
+# TODO: Use .DELETE_ON_ERROR
 
 STATIC_DIR := static
 
@@ -117,7 +117,7 @@ curl_files := $(curl_configs:%.curl=%)
 # Concat files
 concat_configs := $(shell find $(STATIC_DIR) -name '*.concat')
 concat_files := $(concat_configs:%.concat=%)
- 
+
 # Uglify files
 ugly_configs := $(shell find $(STATIC_DIR) -name '*.ugly')
 ugly_files := $(ugly_configs:%.ugly=%)
@@ -137,7 +137,7 @@ cleancss_files := $(cleancss_configs:%.cleancss=%)
 # Preprocess css files
 preprocesscss_configs := $(shell find $(STATIC_DIR) $(local_component_paths) -name '*.preprocess.css')
 preprocesscss_files := $(preprocesscss_configs:%.preprocess.css=%)
- 
+
 min_dev_less := $(shell find $(STATIC_DIR) -name '*.min.dev.less')
 dev_css := $(patsubst %.min.dev.less, %.dev.css, $(min_dev_less))
 min_css := $(patsubst %.min.dev.less, %.min.css, $(min_dev_less))
@@ -173,7 +173,7 @@ all :  $(objects) $(concat_configs) $(autoprefix_configs) $(stripmq_configs) $(c
 
 -include *.skin.mk
 
-# Filter out the directories like bower_components, build, and components 
+# Filter out the directories like bower_components, build, and components
 compiled_objects := $(filter-out $(STATIC_DIR)/build components $(bower_components) $(glue), $(objects))
 
 # Use 'development' target when just developing on local machine. Includes
@@ -254,7 +254,7 @@ bower_components : bower.json .verify_version_BOWER
 
 # Skip all downloaded files that already exist.
 skip.curl :
-	@echo Skipping already downloaded files. 
+	@echo Skipping already downloaded files.
 	touch -c $(curl_files);
 
 # Concat task
@@ -277,7 +277,7 @@ $(concat_configs) : %: $$(shell cat $$@)
 % : %.ugly .verify_version_UGLIFYJS
 	@echo "Uglifying $@ from $(shell cat $<)"
 	@$(UGLIFYJS) `cat $<` --output $@
-	 
+
 # Touch .ugly files to trigger rebuilding based on their prerequisites.
 # Filter out any options by just looking for the .js extension
 #	Define a template to create prerequisites for each .ugly file. The
@@ -290,9 +290,9 @@ endef
 
 $(foreach obj,$(ugly_configs),$(eval $(call UGLY_DEPS_template,$(obj))))
 
- 
+
 # TODO: Move glue to the extras as glue.skin.mk
-# Glue 
+# Glue
 # Using 'project' arg in order to create the sprites that need creating.
 # If there are no changes then glue doesn't rebuild the sprites. Using .glue as
 # the target for this.
@@ -416,10 +416,10 @@ $(preprocesscss_configs) : %: $$(shell $(SUITCSS) --depends $$@ 2> /dev/null || 
 # TODO: include .concat files
 built_cache_index_files = $(filter $(shell git ls-files), $(sort $(objects) $(objects_development)))
 # TODO: add 'ignore' and 'no_ignore' to .PHONY target?
-ignore : 
+ignore :
 	git update-index --assume-unchanged  $(built_cache_index_files)
 
-no_ignore : 
+no_ignore :
 	git update-index --no-assume-unchanged $(built_cache_index_files)
 
 # Remove all built files except those that are tracked by git (built_cache_index_files).

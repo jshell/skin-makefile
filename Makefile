@@ -1,4 +1,4 @@
-# Skin Makefile 0.0.5
+# Skin Makefile 0.1.0-alpha
 #
 # This is a generic Makefile for fetching front end resources and compiling
 # them.  It uses some custom extensions `.curl`, `.concat`, `.ugly`,
@@ -138,6 +138,15 @@ cleancss_files := $(cleancss_configs:%.cleancss=%)
 preprocesscss_configs := $(shell find $(STATIC_DIR) $(local_component_paths) -name '*.preprocess.css')
 preprocesscss_files := $(preprocesscss_configs:%.preprocess.css=%)
 
+# Postcss json config files
+postcssjson := $(shell find $(STATIC_DIR) -name 'postcss*.json')
+
+# Top level sibling css files to each postcss json config file.
+postcssjson_sibling_css_files := $(shell for f in $(postcssjson); do find $$(dirname $$f) -maxdepth 1 -name *.css; done)
+
+# Only use postcss command if these assumptions are correct
+postcss := $(if $(postcssjson_sibling_css_files), .postcss, )
+
 min_dev_less := $(shell find $(STATIC_DIR) -name '*.min.dev.less')
 dev_css := $(patsubst %.min.dev.less, %.dev.css, $(min_dev_less))
 min_css := $(patsubst %.min.dev.less, %.min.css, $(min_dev_less))
@@ -168,13 +177,13 @@ objects_development := $(objects) $(verify_commands_development)
 .SECONDEXPANSION:
 
 # all is the default as long as it's first
-all :  $(objects) $(concat_configs) $(autoprefix_configs) $(stripmq_configs) $(cleancss_configs) $(preprocesscss_configs)
+all :  $(objects) $(concat_configs) $(autoprefix_configs) $(stripmq_configs) $(cleancss_configs) $(preprocesscss_configs) $(postcss)
 .PHONY : all manifest clean development production skip.curl
 
 -include *.skin.mk
 
 # Filter out the directories like bower_components, build, and components
-compiled_objects := $(filter-out $(STATIC_DIR)/build components $(bower_components) $(glue), $(objects))
+compiled_objects := $(filter-out $(STATIC_DIR)/build components $(bower_components) $(glue) $(postcss), $(objects))
 
 # Use 'development' target when just developing on local machine. Includes
 # linting of code, updating styleguides, and possibly updating the manifest.
@@ -408,6 +417,20 @@ $(foreach obj,$(cleancss_configs),$(eval $(call CLEANCSS_template,$(obj))))
 $(preprocesscss_configs) : %: $$(shell $(SUITCSS) --depends $$@ 2> /dev/null || echo '.ignore_missing_imported_css')
 	@touch $@;
 
+# Build the css if using postcss.  This makes the assumption that the
+# postcss.json config file is next to top-level css files.  The top level css
+# files have all their imported css files added as prerequisites for the
+# .postcss target. Uses the csssources command to output a list of css file
+# paths that are imported.  Using the npm config script setup to actually build
+# the css.  See the package.json.
+#
+# A note on the package.json script `buildcss` to build css for the site as
+# well as one for old ie:
+# "buildcss": "postcss -c static/css/postcss.json"
+# "postbuildcss": "mkdir -p dist/css/oldie && postcss -u oldie -u postcss-url -d dist/css/oldie/ dist/css/*.css"
+.postcss : $(shell csssources $(postcssjson_sibling_css_files) 2> /dev/null)
+	npm run buildcss;
+	@touch .postcss;
 
 # TODO: Move these git specific stuff to extras/git.skin.mk
 # TODO: Add a .gitattributes file for setting minified files to be binary, and possibly setting their textconf for viewing diffs.

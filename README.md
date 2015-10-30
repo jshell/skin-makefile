@@ -67,7 +67,7 @@ saved to the filename without the `.less` extension.
 
 The [lessc](http://lesscss.org/) command is used with the --depends option to
 parse for all files that each less file depends on.  The command
-[autoprefixer](https://github.com/ai/autoprefixer) is ran afterwards which adds
+[autoprefixer](https://github.com/ai/autoprefixer-cli) is ran afterwards which adds
 any browser specific prefixes to the css.
 
 For example to create a `static/css/site.min.css` and `static/css/site.dev.css` from the

@@ -30,7 +30,7 @@ npm install -g clean-css;
 npm install -g component;
 npm install -g bower;
 npm install -g less;
-npm install -g autoprefixer;
+npm install -g autoprefixer-cli;
 npm install -g stripmq;
 
 # install custom fork of suitcss

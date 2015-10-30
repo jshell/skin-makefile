@@ -45,7 +45,7 @@ version_spec_COMPONENT := >=1.0,<2.0
 fetch_version_COMPONENT := $(COMPONENT) -V | egrep -o -m1 "$(regex_semver)"
 
 BOWER := bower
-version_spec_BOWER := >=1.3,<1.6
+version_spec_BOWER := >=1.3,<1.7
 fetch_version_BOWER := $(BOWER) -v | egrep -o -m1 "$(regex_semver)"
 
 LESSC := lessc

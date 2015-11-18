@@ -322,7 +322,7 @@ $$(patsubst %.min.dev.less, %.dev.css, $(1)) : $(1) $$(filter-out "$(1)", $$(she
 	$$(AUTOPREFIXER) -b $$(AUTOPREFIXER_BROWSERS) $$@;
 
 $$(patsubst %.min.dev.less, %.min.css, $(1)) : $$(patsubst %.min.dev.less, %.dev.css, $(1)) .verify_version_CLEANCSS
-	$$(CLEANCSS) -o $$@ $$<
+	$$(CLEANCSS) --skip-advanced --skip-aggressive-merging --skip-media-merging --skip-restructuring -o $$@ $$<
 endef
 
 $(foreach obj,$(min_dev_less),$(eval $(call LESS_DEPS_template,$(obj))))
@@ -386,7 +386,7 @@ $(autoprefix_configs) : %: $$(shell cat $$@)
 # IE Mobile: 10
 
 % : %.cleancss .verify_version_CLEANCSS
-	$(CLEANCSS) --output $@ `cat $<`;
+	$(CLEANCSS) --skip-advanced --skip-aggressive-merging --skip-media-merging --skip-restructuring --output $@ `cat $<`;
 
 # Touch .cleancss files to trigger rebuilding based on their prerequisites.
 # Filter out any options by just looking for the .css extension

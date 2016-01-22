@@ -56,7 +56,7 @@ fetch_version_LESSC := $(LESSC) -v | egrep -o -m1 "$(regex_semver)"
 AUTOPREFIXER := autoprefixer-cli
 version_spec_AUTOPREFIXER := >=2.1
 fetch_version_AUTOPREFIXER := $(AUTOPREFIXER) -v | egrep -o -m1 "$(regex_semver)"
-AUTOPREFIXER_BROWSERS := "> 1%, last 2 versions, Firefox ESR, Opera 12.1"
+AUTOPREFIXER_BROWSERS := "> 1%, last 2 versions, Firefox ESR, Opera 12.1, IE 9"
 
 # TODO: Setup the verification for stripmq version
 STRIPMQ := stripmq

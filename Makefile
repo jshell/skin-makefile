@@ -1,4 +1,4 @@
-# Skin Makefile 0.2.1
+# Skin Makefile 0.3.0-beta
 #
 # This is a generic Makefile for fetching front end resources and compiling
 # them.  It uses some custom extensions `.curl`, `.concat`, `.ugly`,
@@ -109,8 +109,8 @@ STATIC_DIR := static
 local_component_paths := $(if $(wildcard component.json), $(filter-out null, $(shell cat component.json | $(JQ) -r -a '.paths | @sh')))
 local_component_files := $(if $(wildcard component.json), $(filter-out null, $(shell cat component.json | $(JQ) -r -a '.styles, .scripts, .json, .images, .fonts, .files | @sh')))
 
-# Find all files recursively in the cwd with .curl extension
-curl_configs := $(shell find $(STATIC_DIR) -name '*.curl')
+# Find all files with .curl ext in cwd and recursively in static directory.
+curl_configs := $(shell find . -maxdepth 1 -name '*.curl') $(shell find $(STATIC_DIR) -name '*.curl')
 # Place curled files next to their .curl
 curl_files := $(curl_configs:%.curl=%)
 
@@ -248,6 +248,7 @@ bower_components : bower.json .verify_version_BOWER
 # This needs to match the variables: curl_files and curl_configs
 # Check if the resource has moved permantly with 301 error code and show
 # a warning.
+# If the downloaded file has .tgz or tar.gz extension; then uncompress it.
 % : %.curl .verify_version_CURL
 	@(if test ! $@ -nt $<; then \
 	(if test "301" = `$(CURL) --silent --head --write-out "%{http_code}" --config $< --output /dev/null`; then \
@@ -255,6 +256,10 @@ bower_components : bower.json .verify_version_BOWER
 		fi); \
 	echo "Get $@"; \
 	$(CURL) --silent --show-error --fail --location --config $< --output $@ || (echo "Failed. If file exists try: 'make skip.curl' or use touch."; exit 1); \
+	(if [[ $@ =~ .*\.tgz$$|.*\.tar\.gz$$ ]]; then \
+		echo "Uncompress $@"; \
+		tar -xf $@; \
+	fi); \
 	fi);
 
 # Skip all downloaded files that already exist.

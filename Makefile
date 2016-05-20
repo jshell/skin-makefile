@@ -10,7 +10,7 @@
 
 # The version check is done on the following commands just before using it.  It
 # stores an empty file `.verify_version_*` for each to avoid checking again.
-commands := CURL GLUE LESSC OPTIPNG UGLIFYJS CLEANCSS COMPONENT BOWER AUTOPREFIXER SUITCSS MD5SUM JQ
+commands := CURL GLUE LESSC OPTIPNG UGLIFYJS CLEANCSS BOWER AUTOPREFIXER SUITCSS MD5SUM
 # List commands used only for development and not needed for production
 commands_development := $(commands) CSSLINT
 
@@ -40,10 +40,6 @@ CLEANCSS := cleancss
 version_spec_CLEANCSS := >=2.0,<4.0
 fetch_version_CLEANCSS := $(CLEANCSS) -v | egrep -o -m1 "$(regex_semver)"
 
-COMPONENT := component
-version_spec_COMPONENT := >=1.0,<2.0
-fetch_version_COMPONENT := $(COMPONENT) -V | egrep -o -m1 "$(regex_semver)"
-
 BOWER := bower
 version_spec_BOWER := >=1.3,<1.8
 fetch_version_BOWER := $(BOWER) -v | egrep -o -m1 "$(regex_semver)"
@@ -72,14 +68,6 @@ MD5SUM := md5sum
 version_spec_MD5SUM := >=0.9
 fetch_version_MD5SUM := $(MD5SUM) --version | egrep -o -m1 "$(regex_semver)"
 
-# For parsing and editing json files
-# http://stedolan.github.io/jq/
-# Version 1.3 sends to stderr and 1.4 sends to stdout
-JQ := jq
-version_spec_JQ := >=1.3
-fetch_version_JQ := $(JQ) -V 2>&1 | egrep -o -m1 "$(regex_semver)"
-
-
 # https://github.com/stubbornella/csslint
 ### development only
 CSSLINT := csslint
@@ -90,8 +78,6 @@ fetch_version_CSSLINT := $(CSSLINT) --version | egrep -o -m1 "$(regex_semver)"
 # https://github.com/jkenlooper/verify_version_spec
 VERIFY_VERSION_SPEC := verify_version_spec
 
-# TODO: Setup linting of js code and automatically running tests when developing.
-
 # List all the .verify_version_* commands that will be ran
 # (See the VERIFY_VERSION_template below)
 verify_commands := $(patsubst %, .verify_version_%, $(commands))
@@ -100,14 +86,6 @@ verify_commands_development := $(patsubst %, .verify_version_%, $(commands_devel
 # TODO: Use .DELETE_ON_ERROR
 
 STATIC_DIR := static
-
-# Use jq to parse the component.json file for the 'paths' key which has the
-# directory names for local components. Also add any files specified in the
-# root component.json. Filter out 'null' values from jq and make it blank if no
-# component.json.
-
-local_component_paths := $(if $(wildcard component.json), $(filter-out null, $(shell cat component.json | $(JQ) -r -a '.paths | @sh')))
-local_component_files := $(if $(wildcard component.json), $(filter-out null, $(shell cat component.json | $(JQ) -r -a '.styles, .scripts, .json, .images, .fonts, .files | @sh')))
 
 # Find all files with .curl ext in cwd and recursively in static directory.
 curl_configs := $(shell find . -maxdepth 1 -name '*.curl') $(shell find $(STATIC_DIR) -name '*.curl')
@@ -123,7 +101,7 @@ ugly_configs := $(shell find $(STATIC_DIR) -name '*.ugly')
 ugly_files := $(ugly_configs:%.ugly=%)
 
 # Autoprefix files
-autoprefix_configs := $(shell find $(STATIC_DIR) $(local_component_paths) -name '*.autoprefix')
+autoprefix_configs := $(shell find $(STATIC_DIR) -name '*.autoprefix')
 autoprefix_files := $(autoprefix_configs:%.autoprefix=%)
 
 # stripmq files
@@ -131,11 +109,11 @@ stripmq_configs := $(shell find $(STATIC_DIR) -name '*.stripmq')
 stripmq_files := $(stripmq_configs:%.stripmq=%)
 
 # Clean-css files
-cleancss_configs := $(shell find $(STATIC_DIR) $(local_component_paths) -name '*.cleancss')
+cleancss_configs := $(shell find $(STATIC_DIR) -name '*.cleancss')
 cleancss_files := $(cleancss_configs:%.cleancss=%)
 
 # Preprocess css files
-preprocesscss_configs := $(shell find $(STATIC_DIR) $(local_component_paths) -name '*.preprocess.css')
+preprocesscss_configs := $(shell find $(STATIC_DIR) -name '*.preprocess.css')
 preprocesscss_files := $(preprocesscss_configs:%.preprocess.css=%)
 
 # npm install based on npm-prequisites
@@ -147,7 +125,7 @@ min_dev_less := $(shell find $(STATIC_DIR) -name '*.min.dev.less')
 dev_css := $(patsubst %.min.dev.less, %.dev.css, $(min_dev_less))
 min_css := $(patsubst %.min.dev.less, %.min.css, $(min_dev_less))
 
-css_less := $(shell find $(STATIC_DIR) $(local_component_paths) -name '*.css.less')
+css_less := $(shell find $(STATIC_DIR) -name '*.css.less')
 lessed_css := $(patsubst %.css.less, %.css, $(css_less))
 
 # Glue sprites
@@ -163,7 +141,7 @@ bower_components := $(if $(wildcard bower.json),bower_components,)
 # Only use glue command if there are sprites to glue
 glue := $(if $(glue_sprites), .glue, )
 
-objects := $(if $(wildcard component.json), $(STATIC_DIR)/build components) $(curl_files) $(bower_components) $(concat_files) $(ugly_files) $(dev_css) $(min_css) $(lessed_css) $(autoprefix_files) $(stripmq_files) $(cleancss_files) $(preprocesscss_files) $(if $(wildcard component.json), $(STATIC_DIR)/build components) $(glue) $(glue_sprites) $(npmtarget)
+objects := $(curl_files) $(bower_components) $(concat_files) $(ugly_files) $(dev_css) $(min_css) $(lessed_css) $(autoprefix_files) $(stripmq_files) $(cleancss_files) $(preprocesscss_files) $(glue) $(glue_sprites) $(npmtarget)
 objects_development := $(objects) $(verify_commands_development)
 
 # clear out any suffixes
@@ -178,8 +156,8 @@ all :  $(objects) $(concat_configs) $(autoprefix_configs) $(stripmq_configs) $(c
 
 -include *.skin.mk
 
-# Filter out the directories like bower_components, build, and components
-compiled_objects := $(filter-out $(STATIC_DIR)/build components $(bower_components) $(glue) $(npmtarget), $(objects))
+# Filter out the directories like bower_components
+compiled_objects := $(filter-out $(bower_components) $(glue) $(npmtarget), $(objects))
 
 # Use 'development' target when just developing on local machine. Includes
 # linting of code, updating styleguides, and possibly updating the manifest.
@@ -214,29 +192,6 @@ manifest MANIFEST : $(compiled_objects) .verify_version_MD5SUM
 
 verify : all .verify_version_MD5SUM
 	$(MD5SUM) -c MANIFEST
-
-# Component is setup here to do `component install` if component.json changes.
-# It will do a `component build` when needed.  The build directory that
-# Component creates should be published. The files within it should be separate
-# from the rest of the Makefile. (Don't try using something that component
-# creates in a concat and vice versa.)
-components : component.json .verify_version_COMPONENT
-	$(COMPONENT) install;
-	touch $@;
-
-
-# Set prerequisites to be components and local components. Sets all files
-# within each local component path as a prerequisite, but filters out any that
-# are prequisites elsewhere.
-other_prequisites := $(autoprefix_configs) $(cleancss_configs) $(preprocesscss_configs) $(css_less)
-
-# TODO: Only include those within the local_components directories
-local_components_built_with_make := $(lessed_css)
-
-# (components depends on the jq command to parse the components.json file for prequisites. Hence the .verify_version_JQ here.)
-static/build : components $(if $(local_component_paths), $(filter-out $(other_prequisites), $(shell find $(local_component_paths) -type f))) $(local_component_files) $(local_components_built_with_make) .verify_version_COMPONENT .verify_version_JQ
-	$(COMPONENT) build --out $(STATIC_DIR)/build;
-	touch $@;
 
 
 # Bower components are only updated if the bower.json has changed.
@@ -374,8 +329,6 @@ $(autoprefix_configs) : %: $$(shell cat $$@)
 # "> 1%, last 2 versions, Firefox ESR, Opera 12.1"
 # See the AUTOPREFIXER_BROWSERS variable.
 #
-# TODO: Option to set the browsers that autoprefixer will use?  Read from the .less file maybe?
-#
 # Browsers (autoprefixer -i):
 # IE: 11, 10, 9, 8
 # Firefox: 30, 29, 24
@@ -421,10 +374,6 @@ $(preprocesscss_configs) : %: $$(shell $(SUITCSS) --depends $$@ 2> /dev/null || 
 .npm-target : $(npmprerequisites)
 	npm install;
 	@touch .npm-target;
-
-
-# TODO: Move these git specific stuff to extras/git.skin.mk
-# TODO: Add a .gitattributes file for setting minified files to be binary, and possibly setting their textconf for viewing diffs.
 
 # Automate marking all files that have been created to be ignored by git.
 # TODO: include .concat files

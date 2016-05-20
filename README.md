@@ -102,10 +102,8 @@ own `extra/glue.skin.mk`.
 If a `bower.json` is found in the current working directory then it will run
 the `bower install` command.
 
-If a `component.json` is found in the current working directory then the
-`component install` and `component build` command will be run.
-[Component](https://github.com/component/component) builds HTML, CSS and JS
-files among other things.
+If a `package.json` is found in the current working directory then it will run
+the `npm install` command.
 
 ### Verifying resources and commands
 

@@ -2,7 +2,7 @@
 
 This is a generic Makefile for fetching front end resources and compiling
 them.  It uses some custom extensions `.curl`, `.concat`, `.ugly`,
-`.min.dev.less`, `.css.less`, and others to avoid the need to edit/customize
+`.css.less`, and others to avoid the need to edit/customize
 the Makefile for individual projects.  It depends on few commands which can
 be seen in the install.sh script.  When starting the first time it will check
 the versions of commands it depends on to see if they are compliant.  The
@@ -60,27 +60,13 @@ file.* Example `path/to/example.min.js.ugly`::
 
 ### CSS pre-processing with LESS
 
-Each file with the extension `.min.dev.less` creates two css files; a minified
-`.min.css` version and non-minified development `.dev.css`.  Also, the
-extension `.css.less` can be used to not create a minified version and will be
+The extension `.css.less` can be used to not create a minified version and will be
 saved to the filename without the `.less` extension.
 
 The [lessc](http://lesscss.org/) command is used with the --depends option to
 parse for all files that each less file depends on.  The command
 [autoprefixer](https://github.com/ai/autoprefixer-cli) is ran afterwards which adds
 any browser specific prefixes to the css.
-
-For example to create a `static/css/site.min.css` and `static/css/site.dev.css` from the
-source file `static/css/site.min.dev.less` which imports `style-a.less` and
-`vendor/style-b.less`::
-
-  // static/css/site.min.dev.less
-  @import "style-a";
-  @import "vendor/style-b";
-
-  .example-style {
-    color: black;
-  }
 
 The minified css is done by [clean-css](https://www.npmjs.org/package/clean-css).
 

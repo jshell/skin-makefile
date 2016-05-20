@@ -2,7 +2,7 @@
 #
 # This is a generic Makefile for fetching front end resources and compiling
 # them.  It uses some custom extensions `.curl`, `.concat`, `.ugly`,
-# `.min.dev.less`, `.css.less`, and others to avoid the need to edit/customize
+# `.css.less`, and others to avoid the need to edit/customize
 # the Makefile for individual projects.  It depends on few commands which can
 # be seen in the install.sh script.  When starting the first time it will check
 # the versions of commands it depends on to see if they are compliant.  The
@@ -121,10 +121,6 @@ npmprerequisites := $(shell npm run npm-prerequisites 2> /dev/null > /dev/null &
 # Only use npm install command if their is a `npm run npm-prerequisites` script
 npmtarget := $(if $(npmprerequisites), .npm-target, )
 
-min_dev_less := $(shell find $(STATIC_DIR) -name '*.min.dev.less')
-dev_css := $(patsubst %.min.dev.less, %.dev.css, $(min_dev_less))
-min_css := $(patsubst %.min.dev.less, %.min.css, $(min_dev_less))
-
 css_less := $(shell find $(STATIC_DIR) -name '*.css.less')
 lessed_css := $(patsubst %.css.less, %.css, $(css_less))
 
@@ -141,7 +137,7 @@ bower_components := $(if $(wildcard bower.json),bower_components,)
 # Only use glue command if there are sprites to glue
 glue := $(if $(glue_sprites), .glue, )
 
-objects := $(curl_files) $(bower_components) $(concat_files) $(ugly_files) $(dev_css) $(min_css) $(lessed_css) $(autoprefix_files) $(stripmq_files) $(cleancss_files) $(preprocesscss_files) $(glue) $(glue_sprites) $(npmtarget)
+objects := $(curl_files) $(bower_components) $(concat_files) $(ugly_files) $(lessed_css) $(autoprefix_files) $(stripmq_files) $(cleancss_files) $(preprocesscss_files) $(glue) $(glue_sprites) $(npmtarget)
 objects_development := $(objects) $(verify_commands_development)
 
 # clear out any suffixes
@@ -265,23 +261,6 @@ $(foreach obj,$(ugly_configs),$(eval $(call UGLY_DEPS_template,$(obj))))
 	$(GLUE) --project --namespace='' --less $(STATIC_DIR)/css/ --img=$(STATIC_DIR)/css/img/sprites --cachebuster $(STATIC_DIR)/css/img/sprites/
 	$(OPTIPNG) $(OPTIPNG_OPTIONS) $(glue_sprites);
 	@touch .glue
-
-# Less
-# Build .min.css and .dev.css versions of any .min.dev.less file that matches.
-# (css/site.min.dev.less -> css/site.min.css and css/site.dev.css)
-# Uses the lessc --depends option to get prerequisites per .min.dev.less file.
-# Includes all glue targets as prerequisites.
-
-define LESS_DEPS_template
-$$(patsubst %.min.dev.less, %.dev.css, $(1)) : $(1) $$(filter-out "$(1)", $$(shell $$(LESSC) --depends $(1) $$(STATIC_DIR)/ | sed 's/$$(STATIC_DIR)\/://g')) $$(glue) .verify_version_LESSC .verify_version_AUTOPREFIXER
-	$$(LESSC) $$< > $$@;
-	$$(AUTOPREFIXER) -b $$(AUTOPREFIXER_BROWSERS) $$@;
-
-$$(patsubst %.min.dev.less, %.min.css, $(1)) : $$(patsubst %.min.dev.less, %.dev.css, $(1)) .verify_version_CLEANCSS
-	$$(CLEANCSS) --skip-advanced --skip-aggressive-merging --skip-media-merging --skip-restructuring -o $$@ $$<
-endef
-
-$(foreach obj,$(min_dev_less),$(eval $(call LESS_DEPS_template,$(obj))))
 
 # Ignore any errors when imported less files are missing by passing stderr to
 # /dev/null. If there is an error then show a warning only and continue. (It's

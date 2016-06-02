@@ -16,6 +16,7 @@ brew install md5sha1sum
 brew install optipng
 brew install node
 brew install npm
+brew install jq
 
 # pip install ...
 # pillow (required for Glue)
@@ -37,7 +38,7 @@ pip install verify_version_spec;
 npm install -g "uglify-js@<3.0";
 npm install -g "clean-css@<4.0";
 npm install -g component;
-npm install -g "bower@<1.8";
+npm install -g "bower@<1.7";
 npm install -g less;
 npm install -g autoprefixer-cli;
 npm install -g stripmq;

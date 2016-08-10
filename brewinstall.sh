@@ -10,8 +10,10 @@
 # add to common packages
 # curl      (already on OS X)
 # md5sum    (md5sha1sum)
+# python    (just a cleaner Python 2.7.x install)
 # optipng
 # npm
+brew install python
 brew install md5sha1sum
 brew install optipng
 brew install node
